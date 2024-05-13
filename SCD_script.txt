@@ -1,0 +1,160 @@
+
+-- step1
+DROP TABLE IF EXISTS dim_user_new;
+CREATE TABLE dim_user_new LIKE dim_user_production;
+
+--step2
+-- Insert records from dim_user_production that don't exist in dim_user_staging into dim_user_new
+INSERT INTO dim_user_new
+SELECT p.*
+FROM dim_user_production p
+LEFT JOIN dim_user_staging s ON p.login = s.login
+WHERE s.login IS NULL;
+
+--step3
+-- Insert inactive records from dim_user_production into dim_user_new with default value for scd_active
+INSERT INTO TABLE dim_user_new
+SELECT p .dim_user_id,
+  p.login,
+  p.premium_user,
+  p.address,
+  p.phone,
+  s.name,
+  s.surname,
+  s.year_of_birth,
+  p.scd_version,
+  p.scd_start_date,
+  p.scd_end_date,
+  p.scd_active
+FROM dim_user_production p
+JOIN dim_user_staging s
+ON p.login = s.login
+AND p.scd_active = false; 
+
+
+--step4
+-- Insert active records from dim_user_production without SCD Type 2 changes into dim_user_new
+INSERT INTO TABLE dim_user_new
+SELECT p.dim_user_id,
+  p.login,
+  p.premium_user,
+  p.address,
+  p.phone,
+  s.name,
+  s.surname,
+  s.year_of_birth,
+  p.scd_version,
+  p.scd_start_date,
+  p.scd_end_date,
+  p.scd_active
+FROM dim_user_production p
+JOIN dim_user_staging s
+ON p.login = s.login
+AND p.scd_active = true
+WHERE p.premium_user = s.premium_user
+AND p.address = s.address
+AND COALESCE(p.phone, '') = COALESCE(s.phone, ''); 
+
+
+--step5
+-- Insert new inactive versions with SCD Type 2 changes into dim_user_new
+INSERT INTO dim_user_new
+SELECT 
+    p.dim_user_id,
+    p.login,
+    p.premium_user,
+    p.address,
+    p.phone,
+    s.name,
+    s.surname,
+    s.year_of_birth,
+    p.scd_version,
+    p.scd_start_date,
+    current_timestamp(), -- current timestamp for scd_end_date
+    false -- false for scd_active
+FROM dim_user_production p
+JOIN dim_user_staging s ON p.login = s.login
+WHERE p.scd_active = true
+AND (p.premium_user != s.premium_user
+     OR p.address != s.address
+     OR COALESCE(p.phone, '') != COALESCE(s.phone, ''));
+     
+     
+--step6
+--Insert new active versions of records from the production table which have SCD Type 2 changes (apply SCD Type 1 changes if needed):
+-- Insert new active versions with SCD Type 2 changes into dim_user_new
+-- Copy all records from the staging table which don't exist in the production table
+INSERT INTO dim_user_new
+SELECT 
+    NULL,
+    s.login,
+    s.premium_user,
+    s.address,
+    s.phone,
+    s.name,
+    s.surname,
+    s.year_of_birth,
+    p.scd_version + 1,
+    current_timestamp(),
+    '9999-12-31 23:59:59',
+    true
+FROM dim_user_production p
+JOIN (
+    SELECT 
+        login,
+        premium_user,
+        address,
+        phone,
+        name,
+        surname,
+        year_of_birth
+    FROM dim_user_staging
+) s ON p.login = s.login
+WHERE p.scd_active = true
+AND (p.premium_user != s.premium_user
+     OR p.address != s.address
+     OR COALESCE(p.phone, '') != COALESCE(s.phone, ''));
+
+
+--step7
+-- Insert records from dim_user_staging into dim_user_new that don't exist in dim_user_production
+INSERT INTO dim_user_new
+SELECT 
+    NULL,
+    s.login,
+    s.premium_user,
+    s.address,
+    s.phone,
+    s.name,
+    s.surname,
+    s.year_of_birth,
+    1,
+    current_timestamp(),
+    '9999-12-31 23:59:59',
+    true
+FROM dim_user_staging s
+LEFT JOIN dim_user_production p ON s.login = p.login
+WHERE p.login IS NULL;
+
+--step8
+-- Use ROW_NUMBER() to generate sequential numbers for dim_user_id
+INSERT OVERWRITE TABLE dim_user_production
+SELECT 
+    ROW_NUMBER() OVER (ORDER BY scd_start_date) AS dim_user_id,
+    login,
+    premium_user,
+    address,
+    phone,
+    name,
+    surname,
+    year_of_birth,
+    scd_version,
+    scd_start_date,
+    scd_end_date,
+    scd_active
+FROM dim_user_new;
+
+
+
+
+
