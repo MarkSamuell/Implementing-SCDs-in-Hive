@@ -1,7 +1,7 @@
-## Implementing SCD Type2 in Hive
+## Implementing SCDs Type1 and Type2 on HDFS with Hive
 
 
-Handling SCD Type 1 and SCD Type 2 may be trivial or at least well known in other databases, but in Hive you may face several challenges. The most important are the following ones:
+Handling SCD Type 1 and SCD Type 2 may be trivial or at least well known in other databases, but on HDFS you may face several challenges. The most important are the following ones:
 
 1. There is no auto-increment functionality out of the box.
 2. Most storage engines (for example, Parquet) don't support UPDATE.
