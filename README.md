@@ -199,9 +199,8 @@ Adding inactive versions for user1 and user2:
 
 | dim_user_id | login | premium_user | address  | phone | name  | surname | year_of_birth | scd_version | scd_start_date      | scd_end_date        | scd_active |
 | ----------- | ----- | ------------ | -------- | ----- | ----- | ------- | ------------- | ----------- | ------------------- | ------------------- | ---------- |
-| 2           | user2 | false        | address2 | NULL  | Alice | Smith   | 1990          | 1           | 2024-04-01 00:00:00 | 2024-05-25 00:00:00 | false      |
 | 1           | user1 | true         | address1 | 123456789 | John  | Doe     | 1980          | 1           | 2024-04-01 00:00:00 | 2024-05-25 00:00:00 | false      |
-
+| 2           | user2 | false        | address2 | NULL  | Alice | Smith   | 1990          | 1           | 2024-04-01 00:00:00 | 2024-05-25 00:00:00 | false      |
 
 **Step 6: Insert new active versions for records with SCD Type 2 changes**
 
@@ -228,6 +227,13 @@ AND (p.premium_user != s.premium_user
     OR COALESCE(p.phone, '') != COALESCE(s.phone, ''));
 
 ```
+| dim_user_id | login | premium_user | address  | phone | name  | surname | year_of_birth | scd_version | scd_start_date      | scd_end_date        | scd_active |
+| ----------- | ----- | ------------ | -------- | ----- | ----- | ------- | ------------- | ----------- | ------------------- | ------------------- | ---------- |
+| 1           | user1 | true         | address1 | 123456789 | John  | Doe     | 1980          | 1           | 2024-04-01 00:00:00 | 2024-05-25 00:00:00 | false      |
+| 2           | user2 | false        | address2 | NULL  | Alice | Smith   | 1990          | 1           | 2024-04-01 00:00:00 | 2024-05-25 00:00:00 | false      |
+| NULL        | user1 | true         | address1 | 987654321   | John  | Doe      | 1980          | 2           | 2024-05-25 12:00:00 | 9999-12-31 23:59:59 | true       |
+| NULL        | user2 | true         | address2 | NULL        | Alice | Smith    | 1990          | 2           | 2024-05-25 12:00:00 | 9999-12-31 23:59:59 | true       |
+
 
 **Step 7: Handle records from `dim_user_staging` that don't exist in the production table**
 
