@@ -303,8 +303,8 @@ now we have all changed data in our dimension table `dim_user_production`
 
 | dim_user_id | login | premium_user | address  | phone     | name  | surname |
 | ----------- | ----- | ------------ | -------- | --------- | ----- | ------- |
-| 1           | user2 | False        | address2 | NULL      | Alice | Smith   |
-| 2           | user1 | True         | address1 | 123456789 | John  | Doe     |
+| 1           | user1 | True         | address1 | 123456789 | John  | Doe     |
+| 2           | user2 | False        | address2 | NULL      | Alice | Smith   |
 | 3           | user2 | True         | address2 | NULL      | Alice | Smith   |
 | 4           | user1 | True         | address1 | 987654321 | John  | Doe     |
 | 5           | user3 | True         | address3 | 987654321 | Emma  | Johnson |
