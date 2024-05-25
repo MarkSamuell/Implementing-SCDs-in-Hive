@@ -5,7 +5,7 @@ Handling SCD Type 1 and SCD Type 2 may be trivial or at least well-known in othe
 
 1. There is no auto-increment functionality out of the box.
 2. We Can't use Hive transactional table on an external table.
-3. Even if we copy data to a transactional table we are facing the probability of corrupting the target data as there is no `ROLLBACK`
+3. Even if we copy data to a transactional table we are facing the probability of corrupting the target data as there is no `ROLLBACK` and Only available with specific file formats(ORC).
 4. No direct way to update rows that have been updated from the source on the target table.
 
 >but we can work around these limitations by the following steps:
