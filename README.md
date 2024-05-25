@@ -116,6 +116,13 @@ LEFT JOIN dim_user_staging s ON p.login = s.login
 WHERE s.login IS NULL;
 ```
 
+
+Resulting `dim_user_new` table:
+
+| dim_user_id | login | premium_user | address  | phone | name  | surname | year_of_birth | scd_version | scd_start_date      | scd_end_date        | scd_active |
+| ----------- | ----- | ------------ | -------- | ----- | ----- | ------- | ------------- | ----------- | ------------------- | ------------------- | ---------- |
+| 2           | user2 | false        | address2 | NULL  | Alice | Smith   | 1990          | 1           | 2024-04-01 00:00:00 | 9999-12-31 23:59:59 | true       |
+
 **Step 3: Copy all inactive records from the production table**
 
 This step selects inactive records from `dim_user_production` where `scd_active` is false and inserts them into `dim_user_new`. It includes columns from both `dim_user_production` and `dim_user_staging` tables.
@@ -141,7 +148,14 @@ AND p.scd_active = false;
 
 ```
 
-**Step 4: Insert active records from dim_user_production without SCD Type 2 changes into dim_user_new**
+
+Since there are no inactive records, `dim_user_new` remains the same:
+
+| dim_user_id | login | premium_user | address  | phone | name  | surname | year_of_birth | scd_version | scd_start_date      | scd_end_date        | scd_active |
+| ----------- | ----- | ------------ | -------- | ----- | ----- | ------- | ------------- | ----------- | ------------------- | ------------------- | ---------- |
+| 2           | user2 | false        | address2 | NULL  | Alice | Smith   | 1990          | 1           | 2024-04-01 00:00:00 | 9999-12-31 23:59:59 | true       |
+
+**Step 4: Insert active records from `dim_user_production` without SCD Type 2 changes into `dim_user_new`**
 
 This step inserts active records from `dim_user_production` into `dim_user_new` if there are no SCD Type 2 changes detected. It matches records based on login and checks for equality in other columns.
 
@@ -167,6 +181,13 @@ WHERE p.premium_user = s.premium_user
 AND p.address = s.address
 AND COALESCE(p.phone, '') = COALESCE(s.phone, '');
 ```
+
+Since there are no active records with no changes, `dim_user_new` remains the same:
+
+| dim_user_id | login | premium_user | address  | phone | name  | surname | year_of_birth | scd_version | scd_start_date      | scd_end_date        | scd_active |
+| ----------- | ----- | ------------ | -------- | ----- | ----- | ------- | ------------- | ----------- | ------------------- | ------------------- | ---------- |
+| 2           | user2 | false        | address2 | NULL  | Alice | Smith   | 1990          | 1           | 2024-04-01 00:00:00 | 9999-12-31 23:59:59 | true       |
+
 
 **Step 5: Insert new inactive versions with SCD Type 2 changes into dim_user_new**
 
@@ -195,8 +216,15 @@ AND (p.premium_user != s.premium_user
     OR COALESCE(p.phone, '') != COALESCE(s.phone, ''));
 ```
 
+Adding inactive versions for user1 and user2:
 
-**Step 6: Insert new active versions of records from the production table which have SCD Type 2 changes**
+| dim_user_id | login | premium_user | address  | phone | name  | surname | year_of_birth | scd_version | scd_start_date      | scd_end_date        | scd_active |
+| ----------- | ----- | ------------ | -------- | ----- | ----- | ------- | ------------- | ----------- | ------------------- | ------------------- | ---------- |
+| 2           | user2 | false        | address2 | NULL  | Alice | Smith   | 1990          | 1           | 2024-04-01 00:00:00 | 2024-05-25 00:00:00 | false      |
+| 1           | user1 | true         | address1 | 123456789 | John  | Doe     | 1980          | 1           | 2024-04-01 00:00:00 | 2024-05-25 00:00:00 | false      |
+
+
+**Step 6: Insert new active versions for records with SCD Type 2 changes**
 
 This step inserts new active versions into `dim_user_new` for records in `dim_user_production` where SCD Type 2 changes are detected. It sets `dim_user_id` to `NULL` (presumably to be auto-generated), then selects columns from `dim_user_staging` to be joined with `dim_user_production`. It sets `scd_version` to the next value, `scd_start_date` to the current timestamp, `scd_end_date` to '9999-12-31 23:59:59', and `scd_active` to true.
 
