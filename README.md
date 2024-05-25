@@ -10,7 +10,7 @@ Handling SCD Type 1 and SCD Type 2 may be trivial or at least well-known in othe
 
 >but we can work around these limitations by the following steps:
 
-![]()
+![](Diagram.png)
 
 1. **Creating a Staging Table**: A new table named `dim_user_new` is created by copying the schema of the production table (`dim_user_production`). This table will be used to process new data.
     
