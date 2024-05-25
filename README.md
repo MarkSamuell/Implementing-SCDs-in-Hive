@@ -229,16 +229,6 @@ AND (p.premium_user != s.premium_user
 
 ```
 
-Adding new active versions for user1, user2, and user3:
-
-| dim_user_id | login | premium_user | address  | phone | name  | surname | year_of_birth | scd_version | scd_start_date      | scd_end_date        | scd_active |
-| ----------- | ----- | ------------ | -------- | ----- | ----- | ------- | ------------- | ----------- | ------------------- | ------------------- | ---------- |
-| 2           | user2 | false        | address2 | NULL  | Alice | Smith   | 1990          | 1           | 2024-04-01 00:00:00 | 2024-05-25 00:00:00 | false      |
-| 1           | user1 | true         | address1 | 123456789 | John  | Doe     | 1980          | 1           | 2024-04-01 00:00:00 | 2024-05-25 00:00:00 | false      |
-| 3           | user1 | true         | address1 | 987654321 | John  | Doe     | 1985          | 1           | 2024-05-25 00:00:00 | 9999-12-31 23:59:59 | true       |
-| 4           | user2 | true         | address2 | NULL  | Alice | Smith   | 1990          | 1           | 2024-05-25 00:00:00 | 9999-12-31 23:59:59 | true       |
-| 5           | user3 | true         | address3 | 987654321 | Emma  | Johnson | 1985          | 1           | 2024-05-25 00:00:00 | 9999-12-31 23:59:59 | true       |
-
 **Step 7: Handle records from `dim_user_staging` that don't exist in the production table**
 
 This step inserts records from `dim_user_staging` into `dim_user_new` that do not exist in `dim_user_production`. It sets `dim_user_id` to `NULL` (presumably to be auto-generated), sets `scd_version` to 1, `scd_start_date` to the current timestamp, and `scd_end_date` to '9999-12-31 23:59:59'. It also sets `scd_active` to true.
