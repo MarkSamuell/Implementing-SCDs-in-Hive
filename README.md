@@ -116,13 +116,6 @@ LEFT JOIN dim_user_staging s ON p.login = s.login
 WHERE s.login IS NULL;
 ```
 
-
-Resulting `dim_user_new` table:
-
-| dim_user_id | login | premium_user | address  | phone | name  | surname | year_of_birth | scd_version | scd_start_date      | scd_end_date        | scd_active |
-| ----------- | ----- | ------------ | -------- | ----- | ----- | ------- | ------------- | ----------- | ------------------- | ------------------- | ---------- |
-| 2           | user2 | false        | address2 | NULL  | Alice | Smith   | 1990          | 1           | 2024-04-01 00:00:00 | 9999-12-31 23:59:59 | true       |
-
 **Step 3: Copy all inactive records from the production table**
 
 This step selects inactive records from `dim_user_production` where `scd_active` is false and inserts them into `dim_user_new`. It includes columns from both `dim_user_production` and `dim_user_staging` tables.
@@ -147,13 +140,6 @@ JOIN dim_user_staging s ON p.login = s.login
 AND p.scd_active = false;
 
 ```
-
-
-Since there are no inactive records, `dim_user_new` remains the same:
-
-| dim_user_id | login | premium_user | address  | phone | name  | surname | year_of_birth | scd_version | scd_start_date      | scd_end_date        | scd_active |
-| ----------- | ----- | ------------ | -------- | ----- | ----- | ------- | ------------- | ----------- | ------------------- | ------------------- | ---------- |
-| 2           | user2 | false        | address2 | NULL  | Alice | Smith   | 1990          | 1           | 2024-04-01 00:00:00 | 9999-12-31 23:59:59 | true       |
 
 **Step 4: Insert active records from `dim_user_production` without SCD Type 2 changes into `dim_user_new`**
 
@@ -181,13 +167,6 @@ WHERE p.premium_user = s.premium_user
 AND p.address = s.address
 AND COALESCE(p.phone, '') = COALESCE(s.phone, '');
 ```
-
-Since there are no active records with no changes, `dim_user_new` remains the same:
-
-| dim_user_id | login | premium_user | address  | phone | name  | surname | year_of_birth | scd_version | scd_start_date      | scd_end_date        | scd_active |
-| ----------- | ----- | ------------ | -------- | ----- | ----- | ------- | ------------- | ----------- | ------------------- | ------------------- | ---------- |
-| 2           | user2 | false        | address2 | NULL  | Alice | Smith   | 1990          | 1           | 2024-04-01 00:00:00 | 9999-12-31 23:59:59 | true       |
-
 
 **Step 5: Insert new inactive versions with SCD Type 2 changes into dim_user_new**
 
