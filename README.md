@@ -4,10 +4,8 @@
 Handling SCD Type 1 and SCD Type 2 may be trivial or at least well known in other databases, but on HDFS you may face several challenges. The most important are the following ones:
 
 1. There is no auto-increment functionality out of the box.
-2. Most storage engines (for example, Parquet) don't support UPDATE.
-3. Even if you use a storage engine that supports UPDATE (ORC), there is still no UPDATE... JOIN statement.
-4. Anyway, UPDATE in ORC is too slow (update of each individual record requires its own MapReduce job).
-5. There are only row level transactions (no BEGIN, COMMIT or ROLLB ACK statements).
+2. We Can't use Hive transactional table on an external table.
+3. No direct way to update rows that has been updated on source.
 
 >but we can workaround these limitations by the following steps:
 
