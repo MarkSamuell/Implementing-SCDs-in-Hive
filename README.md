@@ -1,14 +1,14 @@
 ## Implementing SCDs Type1 and Type2 on HDFS with Hive
 
 
-Handling SCD Type 1 and SCD Type 2 may be trivial or at least well known in other databases, but on HDFS you may face several challenges. The most important are the following ones:
+Handling SCD Type 1 and SCD Type 2 may be trivial or at least well-known in other databases, but on HDFS you may face several challenges. The most important are the following ones:
 
 1. There is no auto-increment functionality out of the box.
 2. We Can't use Hive transactional table on an external table.
 3. Even if we copy data to a transactional table we are facing the probability of corrupting the target data as there is no `ROLLBACK`
-4. No direct way to update rows that has been updated on source.
+4. No direct way to update rows that have been updated from the source on the target table.
 
->but we can workaround these limitations by the following steps:
+>but we can work around these limitations by the following steps:
 
 1. **Creating a Staging Table**: A new table named `dim_user_new` is created by copying the schema of the production table (`dim_user_production`). This table will be used to process new data.
     
